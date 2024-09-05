@@ -1,14 +1,22 @@
+from time import sleep
+
 class Room:
-    def __init__(self, name, description, scene="", visited=False):
+    def __init__(self, name, description, scene="...", visited=False):
         self.name = name 
         self.description = description  
         self.items = []  
         self.connections = {}
         self.visited = visited
         self.scene = scene
+        self.is_available = True
 
     def describe(self):
         print(f"{self.name}: {self.description}")
+        sleep(1.5)
+        if self.is_available:
+            print(f"{self.scene}")
+            self.is_available = False
+        
 
     def connect(self, direction, room):
         self.connections[direction] = room
@@ -26,14 +34,9 @@ class Room:
         for item in items:
             self.items.append(item)
 
-    # def remove_item(self, item):
-    #     if item in self.items:
-    #         self.items.remove(item)
-    #     else:
-    #         print(f"{item.name} no está en la habitación.")
+    def remove_item(self, items):
+        for item in items:
+            self.items.remove(item)
     
     def mark_as_visited(self):
         self.visited = True
-
-    def start_scene(self):
-        print(self.scene)
