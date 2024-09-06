@@ -13,6 +13,7 @@ from time import sleep
 
 class Game:
     def __init__(self):
+        self.sacred_objects_list = []
         self.sacred_objects = self.setup_sacred_objects()
         self.objects = self.setup_objects()
         self.player = self.create_player()
@@ -36,11 +37,11 @@ class Game:
         clearing = Room(
             "Claro del Bosque", "Un pequeño claro donde apenas penetra la luz de la luna entre las copas de los árboles.")
         dark_cave = Room(
-            "Cueva Oscura", "Una cueva oscura y húmeda donde escuchas el eco de un lobo a lo lejos.", "Un espíritu emerge de la oscuridad...")
+            "Cueva Oscura", "Una cueva oscura y húmeda donde escuchas el eco de un lobo a lo lejos.", "Un espíritu emerge de la oscuridad...", character='espiritu')
         whispering_tree = Room(
-            "Árbol de los Susurros", "Un árbol antiguo que susurra en un idioma olvidado.", "El árbol te habla...")
+            "Árbol de los Susurros", "Un árbol antiguo que susurra en un idioma olvidado.", "El árbol te habla...", character='arbol')
         black_lake = Room(
-            "Lago Negro", "Un lago oscuro y siniestro, en el centro se encuentra una isla con un árbol dorado.", "Encuentras madera y construyes una balsa para cruzar.")
+            "Lago Negro", "Un lago oscuro y siniestro, en el centro se encuentra una isla con un árbol dorado.", "Encuentras madera y construyes una balsa para cruzar.", character='balsa')
         stone_altar = Room(
             "Altar de Piedra", "Un pequeño altar al pie de una colina, donde descansa una campana de plata.")
         broken_bridge = Room("Puente Roto", "Puente antiguo que dirige a la salida del bosque.")
@@ -55,7 +56,7 @@ class Game:
         whispering_tree.connect('este', black_lake)
         black_lake.connect('oeste', whispering_tree)
         black_lake.connect('norte', stone_altar)
-        black_lake.connect('oeste', broken_bridge)
+        black_lake.connect('este', broken_bridge)
         broken_bridge.connect("este", black_lake)
         stone_altar.connect('sur', black_lake)
 
@@ -78,7 +79,7 @@ class Game:
             "cueva_oscura": "dark_cave",
             "árbol_de_los_susurros": "whispering_tree",
             "lago_negro": "black_lake",
-            "puente roto": "broken_bridge",
+            "puente_roto": "broken_bridge",
             "altar_de_piedra": "stone_altar",
         }
 
@@ -89,6 +90,7 @@ class Game:
                         "Los enemigos de la habitacion se revelan...")
         antique_scroll = Item(
             "Pergamino Antiguo", "Un pergamino escrito con runas misteriosas que podrían contener un hechizo.", "Tu salud se ha regenerado")
+        
 
         return {
             "Entrada del Bosque": [old_map, oil_lamp],
@@ -104,6 +106,9 @@ class Game:
             "Pluma Dorada", "Una pluma dorada brillante, parece tener un poder especial.")
         bell = Item("Campana de Plata",
                     "Una campana de plata antigua, con grabados místicos en su superficie.")
+
+        self.sacred_objects_list.append(feather)
+        self.sacred_objects_list.append(bell)
 
         return {
             "Enemigo Cueva": [feather],
@@ -156,6 +161,7 @@ class Game:
                 if self.solved_puzzles == 3:
                     fragment = Item(
                         "Fragmento de Cristal", "Un fragmento brillante que parece emitir una luz etérea.")
+                    self.sacred_objects_list.append(fragment)
                     self.player.add_to_inventory([fragment])
                     self.objective([fragment])
                     print("Lo lograste, has obtenido el fragmento de cristal")
@@ -171,7 +177,7 @@ class Game:
         """
         spirit_dialogue = Dialogue([
             "El Espíritu Malévolo dice: 'Para obtener el fragmento de cristal, debes resolver tres acertijos...'",
-            "'El primero lo encuentras en aquí, en la Cueva Oscura, donde la luz no llega...'",
+            "'El primero lo encuentras aquí, en la Cueva Oscura, donde la luz no llega...'",
             "'El segundo está en el Lago Negro, donde las aguas profundas ocultan secretos olvidados..'",
             "'El tercero está en el Altar de Piedra, donde la luna brilla...'"
         ])
@@ -199,8 +205,8 @@ class Game:
         Configura los enemigos en diferentes ubicaciones del juego.
         :return: Un diccionario de enemigos mapeados a sus nombres de habitación correspondientes.
         """
-        cave_enemy = Enemy("Espíritu Malévolo", "Un espíritu con ojos brillantes y una sonrisa malévola.",
-                           health=50, attack_power=15, inventory=self.sacred_objects["Enemigo Cueva"])
+        cave_enemy = Enemy("Guardia de las Sombras", "Un guardián de la oscuridad, vestido con una capa hecha de sombras.",
+                   health=50, attack_power=15, inventory=self.sacred_objects["Enemigo Cueva"])
         lake_enemy = Enemy("Serpiente del Lago", "Una serpiente gigante que emerge del lago oscuro.",
                            health=80, attack_power=20, inventory=self.sacred_objects["Enemigo Lago"])
 
@@ -218,22 +224,32 @@ class Game:
             while not dialogue.is_finished():
                 dialogue.show_next_line()
                 input("(Presiona Enter para continuar...)")
+            if self.current_room.name == 'Puente Roto':
+                self.finish_game()
         else:
             print("No hay nadie con quien hablar aquí.")
 
     
-    def play_sound_for_current_room(self, position="center"):
-        room_key = self.current_room.name.lower().replace(" ", "_")
-        if room_key in SOUNDS:
-            song = SOUNDS[room_key]
-            self.sound = Sound(os.path.join(self.audio_path, song), position)
-            self.sound.play()
+    # def play_sound_for_current_room(self, position="center"):
+    #     room_key = self.current_room.name.lower().replace(" ", "_")
+    #     if room_key in SOUNDS:
+    #         song = SOUNDS[room_key]
+    #         self.sound = Sound(os.path.join(self.audio_path, song), position)
+    #         self.sound.play()
 
-    def play_sound_for_current_action(self, action, position="center", loop=False):
-        if action in SOUNDS:
-            song = SOUNDS[action]
-            if action == 'hablar':
-                song = song[self.current_room.name]
+    # def play_sound_for_current_action(self, action, position="center", loop=False):
+    #     if action in SOUNDS:
+    #         song = SOUNDS[action]
+    #         if action == 'hablar':
+    #             song = song[self.current_room.name]
+    #         self.sound = Sound(os.path.join(self.audio_path, song), position, loop)
+    #         self.sound.play()
+        
+    def play_sound(self, room_name, action=False, position="center", loop=False):
+        key = action if action else room_name.lower().replace(" ", "_")
+        if key in SOUNDS:
+            song = SOUNDS[key]
+            if key == 'hablar': song = song[room_name]
             self.sound = Sound(os.path.join(self.audio_path, song), position, loop)
             self.sound.play()
 
@@ -253,8 +269,9 @@ class Game:
             enemy = self.enemies[self.current_room.name]
             if enemy.is_alive():
                 enemy.describe()
+                sleep(1)
                 enemy.attack(self.player)
-                self.play_sound_for_current_action("enemigo")
+                self.play_sound(self.current_room.name, enemy.name)
                 self.fight_enemy(enemy)
             else:
                 print("Ya has derrotado a los enemigos de esta habitacion!")
@@ -268,18 +285,27 @@ class Game:
                 "¿Qué deseas hacer? ('atacar', 'defender', 'huir'):> ").strip().lower()
 
             if action == 'atacar':
-                print(f"Atacas a {enemy.name} y le causas 10 de daño.")
-                self.play_sound_for_current_action(action)
-                enemy.take_damage(20)
+                crtical_hit = random.random()
+                if crtical_hit > 0.5:
+                    print("¡Golpe crítico! ¡Haces el triple de daño!")
+                    enemy.take_damage(30)
+                    self.play_sound(self.current_room.name, action)
+                else:
+                    print(f"Atacas a {enemy.name} y le causas 10 de daño.\n")
+                    self.play_sound(self.current_room.name, action)
+                    enemy.take_damage(100)
+                sleep(1.5)
 
                 if enemy.is_alive():
-                    print(f"{enemy.name} contraataca!")
-                    self.play_sound_for_current_action("enemigo")
+                    print(f"{enemy.name} contraataca!\n")
+                    sleep(1)
+                    self.play_sound(self.current_room.name, enemy.name)
                     enemy.attack(self.player)
 
             elif action == 'defender':
-                print("Te preparas para defenderte del próximo ataque.")
-                self.play_sound_for_current_action(action)
+                print("Te preparas para defenderte del próximo ataque.\n")
+                sleep(1)
+                self.play_sound(self.current_room.name, action)
                 damage_taken = max(0, enemy.attack_power - 5)
                 print(f"{enemy.name} te ataca, pero reduces el daño a {damage_taken}!")
                 self.player.take_damage(damage_taken)
@@ -287,8 +313,8 @@ class Game:
             elif action == 'huir':
                 escape_chance = random.random()
                 if escape_chance > 0.5:
-                    print("Logras escapar del combate y esconderte")
-                    self.play_sound_for_current_action(action)
+                    print("Logras escapar del combate y esconderte\n")
+                    self.play_sound(self.current_room.name, action)
                     sleep(3)
                     self.sound.stop()
                     self.current_room.describe()
@@ -296,6 +322,8 @@ class Game:
                 else:
                     print(
                         "Intentas huir, pero el enemigo te bloquea el camino y te ataca!")
+                    sleep(1)
+                    self.play_sound(self.current_room.name, enemy.name)
                     enemy.attack(self.player)
 
             else:
@@ -304,12 +332,15 @@ class Game:
 
             if not self.player.is_alive():
                 print("Has sido derrotado... ¡Juego terminado!")
+                self.play_sound(self.current_room.name, "explorador_derrotado")
+                sleep(2)
                 exit(1)
 
             if not enemy.is_alive():
-                #self.play_sound_for_current_action("enemigo_derrotado")
+                self.play_sound(self.current_room.name, "enemigo_derrotado")
                 print(f"¡Has derrotado a {enemy.name}!")
                 items = enemy.inventory
+                self.sacred_objects_list.append(items)
                 self.player.add_to_inventory(items)
                 self.objective(items)
                 self.current_room.describe()
@@ -326,6 +357,7 @@ class Game:
         Moves the player in a specified direction.
         :param direction: The direction the player wants to move.
         """
+        self.current_room.mark_as_visited()
         next_room = self.current_room.get_room_in_direction(direction)
 
         if not next_room:
@@ -340,15 +372,47 @@ class Game:
         except KeyError:
             pass
 
+        if self.current_room.name == 'Lago Negro' and direction != 'oeste':
+            print(f'Decides navegar hacia el {direction}')
+            self.play_sound("navegar")
+            sleep(3)
+            self.sound.stop()
+
         print("Decides seguir el sendero, tus pasos crujen sobre las hojas secas...")
-        self.play_sound_for_current_action("caminar")
+        self.play_sound("caminar")
+
         sleep(3)
         self.sound.stop()
-
-        self.current_room.mark_as_visited()
         self.current_room = next_room
         self.current_room.describe()
-        self.play_sound_for_current_room()
+        self.play_sound(self.current_room.name, loop=True)
+        if self.current_room.scene != "...":
+            sleep(2)
+            self.sound.stop()
+            self.current_room.play_scene()
+            self.play_sound(self.current_room.character)
+        
+    
+    def finish_game(self):
+        print("¿Qué deseas hacer?")
+        print("1) Salir del bosque\n 2) Regresar al bosque\n")
+        action = int(input("> "))
+        if action == 1:
+            if self.sacred_objects_collected == 3:
+                self.play_sound(self.current_room, "ganar")
+                print("¡Has escapado del bosque encantado! ¡Felicidades!")
+                sleep(2)
+                exit(1)
+            else:
+                print("Debes recolectar los objetos sagrados antes de salir.")
+        elif action == 2:
+            if self.sacred_objects_collected == 3:
+                for item in self.sacred_objects_list:
+                    self.player.remove_from_inventory(item.name)
+                print("Los objetos sagrados han sido eliminados de tu inventario. Quedas atrapado en el bosque para siempre.")
+                print("¡Juego terminado!")
+                sleep(2)
+                exit(1)
 
     def collect_object(self, command):
         """
@@ -361,7 +425,7 @@ class Game:
                 items = self.objects[self.current_room.name]
                 self.player.add_to_inventory(items)
                 self.current_room.remove_item(items)
-                self.play_sound_for_current_action(command)
+                self.play_sound(self.current_room.name, command)
                 print(f"Has encontrado un {', '.join(item.name for item in items)}.")
             else:
                 print("No hay objetos que recolectar aquí")
@@ -370,14 +434,15 @@ class Game:
         self.sound.cleanup()
 
     def handle_commands(self, command):
+        command.lower()
         if command in ["norte", "sur", "este", "oeste"]:
             self.sound.stop()
             self.move_player(command)
         elif command == "ver":
             self.current_room.look_around()
-            self.play_sound_for_current_action(command)
+            self.play_sound(self.current_room.name, command)
         elif command == "hablar":
-            self.play_sound_for_current_action(command, loop=True)
+            self.play_sound(self.current_room.name, command, loop=True)
             self.play_dialogue()
             self.sound.stop()
         elif command.startswith("usar "):
@@ -397,12 +462,14 @@ class Game:
 
     def play(self):
         print("Bienvenido al bosque encantado!")
-        self.play_sound_for_current_room()
+        self.play_sound(self.current_room.name, loop=True)
         self.current_room.describe()
+        self.current_room.play_scene()
         self.current_room.mark_as_visited()
         try:
             while self.player.is_alive():
                 command = input("> ").strip().lower()
+                self.sound.stop()
                 self.handle_commands(command)
         finally:
             self.cleanup()

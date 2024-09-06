@@ -26,12 +26,10 @@ class Character:
             self.inventory.append(item)
             print(f"{item.name} ha sido añadido a tu inventario.")
 
-    # def remove_from_inventory(self, item):
+    def remove_from_inventory(self, item):
 
-    #     if item in self.inventory:
-    #         self.inventory.remove(item)
-    #     else:
-    #         print(f"{item.name} no está en el inventario.")
+        if item in self.inventory:
+            self.inventory.remove(item)
 
     def show_inventory(self):
 
