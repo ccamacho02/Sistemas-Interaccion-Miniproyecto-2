@@ -57,7 +57,7 @@ class Game:
         black_lake.connect('oeste', whispering_tree)
         black_lake.connect('norte', stone_altar)
         black_lake.connect('este', broken_bridge)
-        broken_bridge.connect("este", black_lake)
+        broken_bridge.connect("oeste", black_lake)
         stone_altar.connect('sur', black_lake)
 
         forest_entrance.add_item(self.objects["Entrada del Bosque"])
@@ -293,7 +293,7 @@ class Game:
                 else:
                     print(f"Atacas a {enemy.name} y le causas 10 de daño.\n")
                     self.play_sound(self.current_room.name, action)
-                    enemy.take_damage(100)
+                    enemy.take_damage(10)
                 sleep(1.5)
 
                 if enemy.is_alive():
@@ -394,8 +394,9 @@ class Game:
         
     
     def finish_game(self):
+        self.sound.stop()
         print("¿Qué deseas hacer?")
-        print("1) Salir del bosque\n 2) Regresar al bosque\n")
+        print("1) Salir del bosque\n2) Regresar al bosque\n")
         action = int(input("> "))
         if action == 1:
             if self.sacred_objects_collected == 3:
@@ -408,7 +409,7 @@ class Game:
         elif action == 2:
             if self.sacred_objects_collected == 3:
                 for item in self.sacred_objects_list:
-                    self.player.remove_from_inventory(item.name)
+                    self.player.remove_from_inventory(item)
                 print("Los objetos sagrados han sido eliminados de tu inventario. Quedas atrapado en el bosque para siempre.")
                 print("¡Juego terminado!")
                 sleep(2)
